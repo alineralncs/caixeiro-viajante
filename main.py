@@ -63,3 +63,5 @@ if __name__ == "__main__":
     print("Tempo de execução (segundos) - algoritmo guloso randomizado:", execution_time)
     print("Caminho pelo algoritmo guloso randomizado:", randomized_path)
     print("Custo do caminho pelo algoritmo guloso randomizado:", randomized_cost)
+
+    ###### AAAAAAAAAAAAAAAAAAAAAAAAA
