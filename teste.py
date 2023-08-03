@@ -1,25 +1,13 @@
 import random
 import time
+import networkx as nx
+import matplotlib.pyplot as plt
 
-grafo_k5_1 = [[0, 2, 7, 1, 5],
+grafo_k5 = [[0, 2, 7, 1, 5],
             [2, 0, 5, 3, 4],
             [7, 5, 0, 6, 8],
             [1, 3, 6, 0, 2],
             [5, 4, 8, 2, 0]]
-
-grafo_k5_2 = [[0, 9, 4, 12, 8],
-              [9, 0, 7, 6, 14],
-              [4, 7, 0, 3, 5],
-              [12, 6, 3, 0, 11],
-              [8, 14, 5, 11, 0]]
-
-grafo_k6 = [[0, 7, 2, 15, 9, 10],
-            [7, 0, 5, 4, 10, 12],
-            [2, 5, 0, 2, 3, 13],
-            [15, 4, 2, 0, 8, 14],
-            [9, 10, 3, 8, 0, 6],
-            [10, 12, 13, 14, 6, 0]]
-
 
 grafo_k10 = [[0, 17, 23, 9, 14, 20, 12, 15, 8, 11],
              [17, 0, 6, 13, 10, 7, 19, 21, 16, 22],
@@ -32,16 +20,18 @@ grafo_k10 = [[0, 17, 23, 9, 14, 20, 12, 15, 8, 11],
              [8, 16, 13, 12, 9, 10, 12, 7, 0, 21],
              [11, 22, 16, 24, 26, 27, 29, 25, 21, 0]]
 
+
 def calculate_cost(graph, path):
     cost = 0
     for i in range(len(path) - 1):
-        cost += graph[path[i]][path[i+1]]
-    cost += graph[path[-1]][path[0]]  
+        cost += graph[path[i]][path[i + 1]]
+    cost += graph[path[-1]][path[0]]
     return cost
+
 
 def tsp_constructive_deterministic(graph):
     n = len(graph)
-    path = [0] 
+    path = [0]
     remaining_vertices = set(range(1, n))
 
     while remaining_vertices:
@@ -51,15 +41,16 @@ def tsp_constructive_deterministic(graph):
 
     return path
 
+
 def tsp_randomized_greedy(graph, K):
     n_deterministico = True
 
     valor = random.randint(1, 100)
     random.seed(valor)
-   
+
     n = len(graph)
-    path = [0]  
-    remaining_vertices = set(range(1, n))  
+    path = [0]
+    remaining_vertices = set(range(1, n))
 
     while remaining_vertices:
         candidates = random.choices(tuple(remaining_vertices), k=min(K, len(remaining_vertices)))
@@ -69,30 +60,53 @@ def tsp_randomized_greedy(graph, K):
     return path, valor
 
 
+def plot_graph(graph, path=None, title=None):
+    G = nx.Graph()
+    G.add_nodes_from(range(len(graph)))
+
+    for i in range(len(graph)):
+        for j in range(i + 1, len(graph)):
+            G.add_edge(i, j, weight=graph[i][j])
+
+    pos = nx.spring_layout(G)
+    labels = {i: str(i) for i in range(len(graph))}
+
+    plt.figure(figsize=(8, 6))
+    nx.draw(G, pos, with_labels=True, labels=labels, node_size=400, node_color='skyblue')
+    nx.draw_networkx_edge_labels(G, pos, edge_labels={(i, j): G[i][j]['weight'] for i, j in G.edges}, font_size=8)
+    if path:
+        path_edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)] + [(path[-1], path[0])]
+        nx.draw_networkx_edges(G, pos, edgelist=path_edges, edge_color='r', width=2)
+    if title:
+        plt.title(title)
+    plt.show()
+
+
 if __name__ == "__main__":
-    K = 3
-    total_pesos = 0
+    n = 5
+    K = 2
+
+    # Plot grafo_k5
+    plot_graph(grafo_k5)
 
     for _ in range(10):
         start_time = time.time()
-        deterministic_path = tsp_constructive_deterministic(grafo_k6)
-        deterministic_cost = calculate_cost(grafo_k6, deterministic_path)
+        deterministic_path = tsp_constructive_deterministic(grafo_k5)
+        deterministic_cost = calculate_cost(grafo_k5, deterministic_path)
         end_time = time.time()
         execution_time = end_time - start_time
         print(f'deterministico=true; instancia=inst_1; custo={deterministic_cost}; {execution_time} ms;')
-        #print(f'{deterministic_path}')
-    
+        # Plot the deterministic path for grafo_k10
+        plot_graph(grafo_k5, deterministic_path, f"Deterministic Path (Cost: {deterministic_cost})")
+
     print('\n#############################################################\n')
 
-    for i in range(100):
+    for i in range(5):  # Reduce the number of iterations to speed up the process for the example
         start_time = time.time()
-        randomized_path, seed = tsp_randomized_greedy(grafo_k6, K)
-        randomized_cost = calculate_cost(grafo_k6, randomized_path)
+        randomized_path, seed = tsp_randomized_greedy(grafo_k5, K)
+        randomized_cost = calculate_cost(grafo_k5, randomized_path)
         end_time = time.time()
         execution_time = end_time - start_time
-        #print(f'n-deterministico=true; instancia=inst_5; seed={seed}; alpha={K}; custo={randomized_cost}; {execution_time} ms;')
-        #print(f'{randomized_path}')
-        print(f'{seed};{K};{randomized_cost};{execution_time};')
-        total_pesos+=randomized_cost
-    media = total_pesos/100
-    print(f'---- media: {media}')
+        print(f'deterministico=true; instancia=inst_5; seed={seed}; alpha={K}; custo={randomized_cost}; {execution_time} ms;')
+        # Plot the randomized path for grafo_k10
+        plot_graph(grafo_k5, randomized_path, f"Randomized Greedy Path (Cost: {randomized_cost}, Seed: {seed})")
