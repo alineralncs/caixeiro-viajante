@@ -32,11 +32,12 @@ grafo_k10 = [[0, 17, 23, 9, 14, 20, 12, 15, 8, 11],
              [8, 16, 13, 12, 9, 10, 12, 7, 0, 21],
              [11, 22, 16, 24, 26, 27, 29, 25, 21, 0]]
 
+
 def calculate_cost(graph, path):
     cost = 0
     for i in range(len(path) - 1):
-        cost += graph[path[i]][path[i+1]]
-    cost += graph[path[-1]][path[0]]  
+        cost += graph[path[i]][path[i + 1]]
+    cost += graph[path[-1]][path[0]]
     return cost
 
 def tsp_constructive_deterministic(graph):
@@ -68,6 +69,36 @@ def tsp_randomized_greedy(graph, K):
         remaining_vertices.remove(next_vertex)
     return path, valor
 
+def apply_local_search(graph, path):
+    improved = True
+    while improved:
+        improved = False
+
+        # 2-opt neighborhood
+        for i in range(len(path) - 1):
+            for j in range(i + 1, len(path)):
+                new_path = path[:i] + path[i:j + 1][::-1] + path[j + 1:]
+                new_cost = calculate_cost(graph, new_path)
+                if new_cost < calculate_cost(graph, path):
+                    path = new_path
+                    improved = True
+
+        # 3-opt neighborhood
+        for i in range(len(path) - 2):
+            for j in range(i + 1, len(path) - 1):
+                for k in range(j + 1, len(path)):
+                    opt3_cases = [
+                        path[:i+1] + path[j:i:-1] + path[k:j-1:-1] + path[k+1:],
+                        path[:i+1] + path[j:k+1][::-1] + path[i+1:j] + path[k+1:],
+                        path[:i+1] + path[j:k+1] + path[i+1:j][::-1] + path[k+1:]
+                    ]
+                    new_path = min(opt3_cases, key=lambda p: calculate_cost(graph, p))
+                    new_cost = calculate_cost(graph, new_path)
+                    if new_cost < calculate_cost(graph, path):
+                        path = new_path
+                        improved = True
+
+    return path
 
 if __name__ == "__main__":
     K = 3
@@ -76,23 +107,26 @@ if __name__ == "__main__":
     for _ in range(10):
         start_time = time.time()
         deterministic_path = tsp_constructive_deterministic(grafo_k5_1)
+        deterministic_path = apply_local_search(grafo_k5_1, deterministic_path)
         deterministic_cost = calculate_cost(grafo_k5_1, deterministic_path)
         end_time = time.time()
         execution_time = end_time - start_time
         print(f'deterministico=true; instancia=inst_1; custo={deterministic_cost}; {execution_time} ms;')
         print(f'{deterministic_path}')
-    
+
     print('\n#############################################################\n')
 
     for i in range(100):
         start_time = time.time()
         randomized_path, seed = tsp_randomized_greedy(grafo_k5_1, K)
+        randomized_path = apply_local_search(grafo_k5_1, randomized_path)
         randomized_cost = calculate_cost(grafo_k5_1, randomized_path)
         end_time = time.time()
         execution_time = end_time - start_time
-        #print(f'n-deterministico=true; instancia=inst_5; seed={seed}; alpha={K}; custo={randomized_cost}; {execution_time} ms;')
-        #print(f'{randomized_path}')
-        print(f'{seed};{K};{randomized_cost};{execution_time};')
-        total_pesos+=randomized_cost
-    media = total_pesos/100
+        print(f'n-deterministico=true; instancia=inst_1; custo={randomized_cost}; seed={seed}; {execution_time} ms;')
+        #print(f'{seed};{K};{randomized_cost};{execution_time};')
+        print(f'{randomized_path}')
+        total_pesos += randomized_cost
+
+    media = total_pesos / 100
     print(f'---- media: {media}')
