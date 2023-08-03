@@ -93,6 +93,7 @@ if __name__ == "__main__":
         #print(f'n-deterministico=true; instancia=inst_5; seed={seed}; alpha={K}; custo={randomized_cost}; {execution_time} ms;')
         #print(f'{randomized_path}')
         print(f'{seed};{K};{randomized_cost};{execution_time};')
+        print(randomized_path)
         total_pesos+=randomized_cost
     media = total_pesos/100
     print(f'---- media: {media}')

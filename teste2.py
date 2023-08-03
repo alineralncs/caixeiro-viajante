@@ -49,7 +49,6 @@ def tsp_constructive_deterministic(graph):
         next_vertex = min(remaining_vertices, key=lambda v: graph[path[-1]][v])
         path.append(next_vertex)
         remaining_vertices.remove(next_vertex)
-
     return path
 
 def tsp_randomized_greedy(graph, K):
@@ -88,9 +87,9 @@ def apply_local_search(graph, path):
             for j in range(i + 1, len(path) - 1):
                 for k in range(j + 1, len(path)):
                     opt3_cases = [
-                        path[:i+1] + path[j:i:-1] + path[k:j-1:-1] + path[k+1:],
-                        path[:i+1] + path[j:k+1][::-1] + path[i+1:j] + path[k+1:],
-                        path[:i+1] + path[j:k+1] + path[i+1:j][::-1] + path[k+1:]
+                        list(dict.fromkeys(path[:i+1] + path[j:i:-1] + path[k:j-1:-1] + path[k+1:])),
+                        list(dict.fromkeys(path[:i+1] + path[j:k+1][::-1] + path[i+1:j] + path[k+1:])),
+                        list(dict.fromkeys(path[:i+1] + path[j:k+1] + path[i+1:j][::-1] + path[k+1:]))
                     ]
                     new_path = min(opt3_cases, key=lambda p: calculate_cost(graph, p))
                     new_cost = calculate_cost(graph, new_path)
